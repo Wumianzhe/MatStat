@@ -2,44 +2,48 @@
 #+LANGUAGE: ru
 #+LATEX_CLASS: article
 #+LATEX_CLASS_OPTIONS: [a4paper,fleqn,12pt]
+#+property: header-args :noweb yes :eval no-export
+#+property: header-args:julia :exports none
 #+LATEX_HEADER: \usepackage[lmargin=15mm, rmargin=15mm, tmargin=2cm, bmargin=2cm]{geometry}
 
+\listoffigures
+#+TOC: tables
 * Постановка задачи
 #+name: imports
-#+begin_src julia :exports none :session :results none :tangle histograms.jl
-using Random, Distributions, StatsPlots
+#+begin_src julia :exports none :session :results none
+using Random, Distributions
 #+end_src
 
 Для 5 распределений:
 - Нормальное распределение \(N(x,0,1)\)
   #+name: distr_normal
-  #+begin_src julia :exports none
-name = "Normal"
-d = Normal(0,1)
+  #+begin_src julia
+name = "Normal";
+d = Normal(0,1);
   #+end_src
 - Распределение Коши \(C(x,0,1)\)
   #+name: distr_cauchy
   #+begin_src julia :exports none
-name = "Cauchy"
-d = Cauchy(0,1)
+name = "Cauchy";
+d = Cauchy(0,1);
   #+end_src
 - Распределение Лапласа \(L(x,0,\frac{1}{\sqrt{2}})\)
   #+name: distr_laplace
   #+begin_src julia :exports none
-name = "Laplace"
-d = Laplace(0,1/sqrt(2))
+name = "Laplace";
+d = Laplace(0,1/sqrt(2));
   #+end_src
 - Распределение Пуассона \(P(k,10)\)
   #+name: distr_poisson
   #+begin_src julia :exports none
-name = "Poisson"
-d = Poisson(10)
+name = "Poisson";
+d = Poisson(10);
   #+end_src
 - Равномерное распределение \(U(x,-\sqrt{3},\sqrt{3})\)
   #+name: distr_uniform
   #+begin_src julia :exports none
-name = "Uniform"
-d = Uniform(-sqrt(3),sqrt(3))
+name = "Uniform";
+d = Uniform(-sqrt(3),sqrt(3));
   #+end_src
 ​​
 #+begin_export latex
@@ -99,16 +103,18 @@ U(x, -\sqrt{3},\sqrt{3}) = \begin{cases}
 #+end_export
 ** Гистограмма
 #+name: histogram
-#+begin_src julia
+#+begin_src julia :exports none
 parr = fill(plot(),3,1);
 xmin = -5;
 xmax = 5;
-x = range(xmin,xmax,101);
 sizes = [10,50,1000]
 bins = [10,20,50]
 for (i,size) in enumerate(sizes)
     sample = rand(d,size);
-    parr[i] = histogram(sample, normalize = :pdf,bins=range(xmin,xmax,length=bins[i]+1), legend=false, title="$name distribution n=$size", xlimits=(xmin,xmax));
+    local xmin = minimum(sample);
+    local xmax = maximum(sample);
+    local x = range(xmin-1,xmax+1,151);
+    parr[i] = histogram(sample, normalize = :pdf,bins=range(xmin-1,xmax+1,length=bins[i]+3), legend=false, title="$name distribution n=$size", xlimits=(xmin-1,xmax+1));
     plot!(parr[i],x, pdf.(d,x),linewidth=1.5);
 end
 dplot = plot(parr...,layout=(1,3),dpi=300,size=(1500,350));
@@ -129,6 +135,34 @@ savefig(dplot,"figs/hist" * name)
 Вариационный ряд --- последовательность элементов выборки, расположенных в
 неубывающем порядке. Одинаковые элементы повторяются.
 ** Выборочные числовые характеристики
+#+name: charFunctions
+#+begin_src julia :exports none :results none
+sizes = [10,50,1000];
+extr(itr) = (minimum(itr) + maximum(itr))/2; # extremes
+quart(itr) = mean(quantile(itr,[0.25,0.75])); # quantile avg
+function truncAvg(itr) # truncated average
+    r:: Integer = round(length(itr) / 4);
+    return mean(itr[r:length(itr) - r])
+end
+#+end_src
+#+name: charasteristics
+#+begin_src julia :exports none :results none
+outs = Vector{Any}(undef,3);
+E = fill(0.0,5);
+D = fill(0.0,5);
+for (i,size) in enumerate(sizes)
+    for (j,f) in enumerate([mean,median,extr,quart,truncAvg])
+        vals = [f(rand(d,size)) for k in 0:1000];
+        E[j] = mean(vals);
+        D[j] = stdm(vals,E[j]);
+    end
+    outs[i] = ["$name n=$size" fill("",1,5); "" "\$\\overline{x}\$" "\$med x\$" "\$z_R\$" "\$z_Q\$" "\$z_{tr}\$"
+       "E(z)" map(x->@sprintf("%6.3f",x),permutedims(E)); "D(z)" map(x->@sprintf("%6.3f",x),permutedims(D)); fill("",1,6)];
+end
+open("figs/char$name.csv","w") do io
+    writedlm(IOContext(io,:compact => true),reduce(vcat,outs),',')
+end
+#+end_src
 *** Характеристики положения
 
 #+begin_export latex
@@ -179,7 +213,11 @@ z_{Q} = \frac{z_{1 / 4} + z_{3 / 4}}{2}
 \end{equation}
 
 ** Боксплот Тьюки
-
+#+name: boxplot
+#+begin_src julia :exports none
+p = plot([box(x=rand(d,size),name="n=$size") for size in sizes], Layout(title=name));
+savefig(p,"figs/box$name.png");
+#+end_src
 *** Построение
 
 Границами ящика --- первый и третий квартили, линия в середине ящика ---
@@ -295,33 +333,41 @@ h_n = 1.06\hat{\sigma} n^{-1 / 5}
 код работы находится в репозитории github
 * Результаты
 ** Гистограмма и график плотности распределения
+:PROPERTIES:
+:header-args:julia: :exports none :tangle histograms.jl :session hist
+:END:
+#+name: Histogram Top
+#+begin_src julia :noweb yes
+<<imports>>
+using StatsPlots
+#+end_src
 
 #+name: Histogram Normal
-#+begin_src julia :noweb yes :exports none :tangle histograms.jl :session :results none
+#+begin_src julia :noweb yes :results none
 <<distr_normal>>
 <<histogram>>
 #+end_src
 
 #+name: Histogram Cauchy
-#+begin_src julia :noweb yes :exports none :tangle histograms.jl :session :results none
+#+begin_src julia :noweb yes :results none
 <<distr_cauchy>>
 <<histogram>>
 #+end_src
 
 #+name: Histogram Laplace
-#+begin_src julia :noweb yes :exports none :tangle histograms.jl :session :results none
+#+begin_src julia :noweb yes :results none
 <<distr_laplace>>
 <<histogram>>
 #+end_src
 
 #+name: Histogram Uniform
-#+begin_src julia :noweb yes :exports none :tangle histograms.jl :session :results none
+#+begin_src julia :noweb yes :results none
 <<distr_uniform>>
 <<histogram>>
 #+end_src
 
 #+name: Histogram Poisson
-#+begin_src julia :noweb yes :exports none :tangle histograms.jl :session :results none
+#+begin_src julia :noweb yes :results none
 <<distr_poisson>>
 parr = fill(plot(),3,1);
 λ = params(d)[1];
@@ -330,11 +376,11 @@ bins = [10,20,50]
 poisPDF(x) = 1/sqrt(2pi * λ) * exp(-(x-λ)^2/(2λ)) # pdf(d,x) is only defined for natural x in Julia
 for (i,size) in enumerate(sizes)
     sample = rand(d,size);
-    xmin = minimum(sample);
-    xmax = maximum(sample);
-    x = range(xmin-3,xmax+3,151);
+    local xmin = minimum(sample);
+    local xmax = maximum(sample);
+    local x = range(xmin-3,xmax+3,151);
     # bins use Freedman-Diaconis rule
-    parr[i] = histogram(sample, normalize= :pdf,  legend=false, title="Poisson distribution n=$size", xlimits=(xmin-3,xmax+3))
+    parr[i] = histogram(sample, normalize= :pdf,bins=range(xmin-3,xmax+3,length=xmax-xmin+7),  legend=false, title="Poisson distribution n=$size", xlimits=(xmin-3,xmax+3))
     plot!(parr[i],x, poisPDF.(x), linewidth=1.5);
 end
 dplot = plot(parr...,layout=(1,3),dpi=300,size=(1500,350));
@@ -361,16 +407,247 @@ savefig(dplot,"figs/hist" * name )
 #+name: fig:5
 [[./figs/histUniform.png]]
 
+#+begin_export latex
+\pagebreak
+#+end_export
 ** Характеристики положения и рассеяния
-
+:PROPERTIES:
+:header-args:julia: :tangle characteristics.jl :session char
+:END:
 /Как было проведено округление/: \\
 В оценке \(x = E \pm D\) вариации подлежит первая цифра после точки. \\
 В данном случае \(x = 0.0 \pm 0.1k\), $k$ --- зависит от доверительной вероятности
 и вида распределения (рассматривается в дальнейшем цикле лабораторных работ)\\
 Округление сделано для \(k = 1\)
+
+#+name: csv_to_org
+#+begin_src emacs-lisp :exports none :eval never-export
+(defun csv-to-table (file)
+  (with-temp-buffer
+    (erase-buffer)
+    (insert-file file)
+    (org-table-convert-region (point-min) (point-max) '(4))
+    (buffer-string)))
+#+end_src
+
+#+name: Characteristics Top
+#+begin_src julia :results none
+<<imports>>
+using Statistics,DelimitedFiles,Printf
+<<charFunctions>>
+#+end_src
+#+name: Characteristics Normal
+#+begin_src julia :results none
+<<distr_normal>>
+<<charasteristics>>
+#+end_src
+
+#+name: Characteristics Cauchy
+#+begin_src julia :results none
+<<distr_cauchy>>
+<<charasteristics>>
+#+end_src
+
+#+name: Characteristics Laplace
+#+begin_src julia :results none
+<<distr_laplace>>
+<<charasteristics>>
+#+end_src
+
+#+name: Characteristics Poisson
+#+begin_src julia :results none
+<<distr_poisson>>
+<<charasteristics>>
+#+end_src
+
+#+name: Characteristics Uniform
+#+begin_src julia :results none
+<<distr_uniform>>
+<<charasteristics>>
+#+end_src
+
+#+name: charTableNormal
+#+begin_src emacs-lisp :exports results :results raw :noweb yes :eval no-export
+<<csv_to_org>>
+(csv-to-table "./figs/charNormal.csv")
+#+end_src
+
+#+RESULTS: charTableNormal
+#+caption: Нормальное распределение
+| Normal n=10   |                |         |        |        |        |
+|               | $\overline{x}$ | $med x$ |  $z_R$ |  $z_Q$ |  $z_{tr}$ |
+| E(z)          |          0.003 |  -0.024 |  0.001 | -0.026 | -0.000 |
+| D(z)          |          0.321 |   0.372 |  0.416 |  0.336 |  0.394 |
+|               |                |         |        |        |        |
+| Normal n=50   |                |         |        |        |        |
+|               | $\overline{x}$ | $med x$ |  $z_R$ |  $z_Q$ |  $z_{tr}$ |
+| E(z)          |         -0.000 |  -0.002 | -0.002 |  0.000 | -0.008 |
+| D(z)          |          0.140 |   0.177 |  0.335 |  0.163 |  0.195 |
+|               |                |         |        |        |        |
+| Normal n=1000 |                |         |        |        |        |
+|               | $\overline{x}$ | $med x$ |  $z_R$ |  $z_Q$ |  $z_{tr}$ |
+| E(z)          |         -0.001 |  -0.002 |  0.005 |  0.000 |  0.000 |
+| D(z)          |          0.032 |   0.040 |  0.251 |  0.034 |  0.045 |
+|               |                |         |        |        |        |
+
+#+name: charTableCauchy
+#+caption: Распределение Коши
+#+begin_src emacs-lisp :exports results :results raw :noweb yes :eval no-export
+<<csv_to_org>>
+(csv-to-table "./figs/charCauchy.csv")
+#+end_src
+
+#+RESULTS: charTableCauchy
+#+caption: Распределение Коши
+| Cauchy n=10   |                |         |           |        |        |
+|               | $\overline{x}$ | $med x$ |     $z_R$ |  $z_Q$ |  $z_{tr}$ |
+| E(z)          |          0.599 |  -0.021 |   -10.156 | -0.031 | -2.506 |
+| D(z)          |         23.118 |   0.567 |   245.756 |  1.102 | 38.052 |
+|               |                |         |           |        |        |
+| Cauchy n=50   |                |         |           |        |        |
+|               | $\overline{x}$ | $med x$ |     $z_R$ |  $z_Q$ |  $z_{tr}$ |
+| E(z)          |         -1.189 |  -0.002 |   -68.561 |  0.001 | -0.470 |
+| D(z)          |         47.260 |   0.217 |  1876.510 |  0.315 | 24.636 |
+|               |                |         |           |        |        |
+| Cauchy n=1000 |                |         |           |        |        |
+|               | $\overline{x}$ | $med x$ |     $z_R$ |  $z_Q$ |  $z_{tr}$ |
+| E(z)          |         -7.304 |  -0.000 |  -164.087 | -0.002 | -0.855 |
+| D(z)          |        260.811 |   0.051 | 13757.117 |  0.070 | 32.854 |
+|               |                |         |           |        |        |
+
+#+name: charTableLaplace
+#+caption: Распределение Лапласа
+#+begin_src emacs-lisp :exports results :results raw :noweb yes :eval no-export
+<<csv_to_org>>
+(csv-to-table "./figs/charLaplace.csv")
+#+end_src
+
+#+RESULTS: charTableLaplace
+#+caption: Распределение Лапласа
+| Laplace n=10   |                |         |        |        |       |
+|                | $\overline{x}$ | $med x$ |  $z_R$ |  $z_Q$ | $z_{tr}$ |
+| E(z)           |         -0.006 |  -0.009 |  0.043 | -0.015 | 0.015 |
+| D(z)           |          0.318 |   0.270 |  0.611 |  0.293 | 0.381 |
+|                |                |         |        |        |       |
+| Laplace n=50   |                |         |        |        |       |
+|                | $\overline{x}$ | $med x$ |  $z_R$ |  $z_Q$ | $z_{tr}$ |
+| E(z)           |         -0.001 |  -0.003 | -0.003 |  0.006 | 0.002 |
+| D(z)           |          0.141 |   0.110 |  0.601 |  0.141 | 0.195 |
+|                |                |         |        |        |       |
+| Laplace n=1000 |                |         |        |        |       |
+|                | $\overline{x}$ | $med x$ |  $z_R$ |  $z_Q$ | $z_{tr}$ |
+| E(z)           |          0.001 |   0.000 | -0.012 |  0.001 | 0.001 |
+| D(z)           |          0.031 |   0.023 |  0.627 |  0.032 | 0.046 |
+|                |                |         |        |        |       |
+
+#+name: charTablePoisson
+#+begin_src emacs-lisp :exports results :results raw :noweb yes :eval no-export
+<<csv_to_org>>
+(csv-to-table "./figs/charPoisson.csv")
+#+end_src
+
+#+RESULTS: charTablePoisson
+#+caption: Распределение Пуассона
+| Poisson n=10   |                |         |        |       |        |
+|                | $\overline{x}$ | $med x$ |  $z_R$ | $z_Q$ |  $z_{tr}$ |
+| E(z)           |         10.034 |   9.850 | 10.301 | 9.969 | 10.039 |
+| D(z)           |          0.967 |   1.185 |  1.407 | 1.053 |  1.148 |
+|                |                |         |        |       |        |
+| Poisson n=50   |                |         |        |       |        |
+|                | $\overline{x}$ | $med x$ |  $z_R$ | $z_Q$ |  $z_{tr}$ |
+| E(z)           |          9.975 |   9.832 | 10.761 | 9.911 |  9.990 |
+| D(z)           |          0.444 |   0.636 |  1.093 | 0.505 |  0.613 |
+|                |                |         |        |       |        |
+| Poisson n=1000 |                |         |        |       |        |
+|                | $\overline{x}$ | $med x$ |  $z_R$ | $z_Q$ |  $z_{tr}$ |
+| E(z)           |         10.002 |   9.997 | 11.686 | 9.997 | 10.003 |
+| D(z)           |          0.102 |   0.055 |  0.830 | 0.045 |  0.141 |
+|                |                |         |        |       |        |
+
+#+name: charTableUniform
+#+begin_src emacs-lisp :exports results :results raw :noweb yes :eval no-export
+<<csv_to_org>>
+(csv-to-table "./figs/charUniform.csv")
+#+end_src
+
+#+RESULTS: charTableUniform
+#+caption: Равномерное распределение
+| Uniform n=10   |                |         |        |        |       |
+|                | $\overline{x}$ | $med x$ |  $z_R$ |  $z_Q$ | $z_{tr}$ |
+| E(z)           |          0.000 |  -0.007 | -0.005 |  0.016 | 0.029 |
+| D(z)           |          0.310 |   0.490 |  0.210 |  0.368 | 0.372 |
+|                |                |         |        |        |       |
+| Uniform n=50   |                |         |        |        |       |
+|                | $\overline{x}$ | $med x$ |  $z_R$ |  $z_Q$ | $z_{tr}$ |
+| E(z)           |          0.001 |   0.003 | -0.003 | -0.007 | 0.002 |
+| D(z)           |          0.143 |   0.242 |  0.045 |  0.172 | 0.189 |
+|                |                |         |        |        |       |
+| Uniform n=1000 |                |         |        |        |       |
+|                | $\overline{x}$ | $med x$ |  $z_R$ |  $z_Q$ | $z_{tr}$ |
+| E(z)           |          0.000 |  -0.004 | -0.000 | -0.000 | 0.002 |
+| D(z)           |          0.031 |   0.054 |  0.003 |  0.039 | 0.045 |
+|                |                |         |        |        |       |
+
+\pagebreak
 ** Боксплот Тьюки
+:PROPERTIES:
+:header-args:julia: :tangle boxes.jl :session boxes
+:END:
+#+name: Boxplot Top
+#+begin_src julia :noweb yes :exports none
+<<imports>>
+using PlotlyJS
+sizes = [20,100];
+#+end_src
+
+#+name: Boxplot Normal
+#+begin_src julia :noweb yes :exports none
+<<distr_normal>>
+<<boxplot>>
+#+end_src
+
+#+name: Boxplot Cauchy
+#+begin_src julia :noweb yes :exports none
+<<distr_cauchy>>
+<<boxplot>>
+#+end_src
+
+#+name: Boxplot Laplace
+#+begin_src julia :noweb yes :exports none
+<<distr_laplace>>
+<<boxplot>>
+#+end_src
+
+#+name: Boxplot Uniform
+#+begin_src julia :noweb yes :exports none
+<<distr_uniform>>
+<<boxplot>>
+#+end_src
+
+#+name: Boxplot Poisson
+#+begin_src julia :noweb yes :exports none
+<<distr_poisson>>
+<<boxplot>>
+#+end_src
+
+#+caption: Нормальное распределение
+#+attr_latex: :placement [h!]
+[[./figs/boxNormal.png]]
+
+#+caption: Распределение Коши
+[[./figs/boxCauchy.png]]
+
+#+caption: Распределение Лапласа
+[[./figs/boxLaplace.png]]
+
+#+caption: Распределение Пуассона
+[[./figs/boxPoisson.png]]
+
+#+caption: Равномерное распределение
+[[./figs/boxUniform.png]]
 
 
+\pagebreak
 ** Доля выбросов
 
 /Округление доли выбросов/:
@@ -427,9 +704,9 @@ savefig(dplot,"figs/hist" * name )
 параметра сглаживания \(h\).
 
 В зависимости от особенностей распределений для их описания лучше подходят
-разные параметры ℎ в ядерной оценке: для равномерного распределения и
+разные параметры \(h\) в ядерной оценке: для равномерного распределения и
 распределения Пуассона лучше подойдет параметр \(h = 2h_n\), для распределения
-Лапласа − \(h = h_n / 2\), а для нормального и Коши − \(h = h_n\). Такие
+Лапласа --- \(h = h_n / 2\), а для нормального и Коши --- \(h = h_n\). Такие
 значения дают вид ядерной оценки наиболее близкий к плотности, характерной
 данным распределениям.
 
