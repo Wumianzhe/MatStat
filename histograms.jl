@@ -90,15 +90,13 @@ parr = fill(plot(),3,1);
 λ = params(d)[1];
 sizes = [10,50,1000]
 bins = [10,20,50]
-poisPDF(x) = 1/sqrt(2pi * λ) * exp(-(x-λ)^2/(2λ)) # pdf(d,x) is only defined for natural x in Julia
 for (i,size) in enumerate(sizes)
     sample = rand(d,size);
     local xmin = minimum(sample);
     local xmax = maximum(sample);
-    local x = range(xmin-3,xmax+3,151);
-    # bins use Freedman-Diaconis rule
-    parr[i] = histogram(sample, normalize= :pdf,bins=range(xmin-3,xmax+3,length=xmax-xmin+7),  legend=false, title="Poisson distribution n=$size", xlimits=(xmin-3,xmax+3))
-    plot!(parr[i],x, poisPDF.(x), linewidth=1.5);
+    local x = range(xmin-3,xmax+3,length=xmax-xmin+7);
+    parr[i] = histogram(sample, normalize= :pdf,bins=x,  legend=false, title="Poisson distribution n=$size", xlimits=(xmin-3,xmax+3))
+    plot!(parr[i],x, pdf.(d,x), linewidth=1.5);
 end
 dplot = plot(parr...,layout=(1,3),dpi=300,size=(1500,350));
 savefig(dplot,"figs/hist" * name )

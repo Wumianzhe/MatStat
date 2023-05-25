@@ -299,6 +299,18 @@ println(p)
 F_{n}^{*}(x) = P^{*}(X < x)
 \end{equation}
 
+#+name: empyrical
+#+begin_src julia
+for (i,size) in enumerate(sizes)
+    sample = sort(rand(d,size));
+    ind = unique(i -> sample[i], eachindex(sample));
+    x = range(-4,4,151);
+    parr[i] = plot(sample[ind], ind/size,xlimits=(-4,4),title="n=$size",label="approx");
+    plot!(parr[i],x,cdf.(d,x),label="cdf");
+end
+dplot = plot(parr...,layout=(1,3),dpi=300,size=(1500,350));
+savefig(dplot,"figs/emp$name")
+#+end_src
 *** Нахождение э. ф. р.
 Для получения относительной частоты $P^*(X < x)$ просуммрируем в статистическом
 ряде, построенном по данной выборке, все частоты $n_i$ для которых элементы
@@ -358,7 +370,7 @@ h_n = 1.06\hat{\sigma} n^{-1 / 5}
 * Реализация
 
 Лабораторная работа выполнена с помощью языка программирования ~Julia~. Исходный
-код работы находится в репозитории github
+код работы находится в репозитории [[github:Wumianzhe/MatStat/tree/Lab1][github]]
 * Результаты
 ** Гистограмма и график плотности распределения
 :PROPERTIES:
@@ -401,38 +413,31 @@ parr = fill(plot(),3,1);
 λ = params(d)[1];
 sizes = [10,50,1000]
 bins = [10,20,50]
-poisPDF(x) = 1/sqrt(2pi * λ) * exp(-(x-λ)^2/(2λ)) # pdf(d,x) is only defined for natural x in Julia
 for (i,size) in enumerate(sizes)
     sample = rand(d,size);
     local xmin = minimum(sample);
     local xmax = maximum(sample);
-    local x = range(xmin-3,xmax+3,151);
-    # bins use Freedman-Diaconis rule
-    parr[i] = histogram(sample, normalize= :pdf,bins=range(xmin-3,xmax+3,length=xmax-xmin+7),  legend=false, title="Poisson distribution n=$size", xlimits=(xmin-3,xmax+3))
-    plot!(parr[i],x, poisPDF.(x), linewidth=1.5);
+    local x = range(xmin-3,xmax+3,length=xmax-xmin+7);
+    parr[i] = histogram(sample, normalize= :pdf,bins=x,  legend=false, title="Poisson distribution n=$size", xlimits=(xmin-3,xmax+3))
+    plot!(parr[i],x, pdf.(d,x), linewidth=1.5);
 end
 dplot = plot(parr...,layout=(1,3),dpi=300,size=(1500,350));
 savefig(dplot,"figs/hist" * name )
 #+end_src
 
 #+caption: Нормальное распределение
-#+name: fig:1
 [[./figs/histNormal.png]]
 
 #+caption: Распределение Коши
-#+name: fig:2
 [[./figs/histCauchy.png]]
 
 #+caption: Распределение Лапласа
-#+name: fig:3
 [[./figs/histLaplace.png]]
 
 #+caption: Распределение Пуассона
-#+name: fig:4
 [[./figs/histPoisson.png]]
 
 #+caption: Равномерное распределение
-#+name: fig:5
 [[./figs/histUniform.png]]
 
 #+begin_export latex
@@ -807,6 +812,69 @@ sizes=[20,100]
 | Пуассона      |       8 |      12 |       2 |       18 |   0.008 |
 | Равномерное   |  -0.866 |   0.866 |  -3.464 |    3.464 |       0 |
 ** Эмпирическая функция распределения
+:PROPERTIES:
+:header-args:julia: :tangle empyrical.jl :session empyrical
+:END:
+#+name: Empyrical Top
+#+begin_src julia :noweb yes :exports none
+<<imports>>
+using StatsPlots
+sizes=[20,60,100];
+parr = fill(plot(),3,1);
+#+end_src
+
+#+name: Empyrical Normal
+#+begin_src julia :noweb yes :exports none
+<<distr_normal>>
+<<empyrical>>
+#+end_src
+
+#+name: Empyrical Cauchy
+#+begin_src julia :noweb yes :exports none
+<<distr_cauchy>>
+<<empyrical>>
+#+end_src
+
+#+name: Empyrical Laplace
+#+begin_src julia :noweb yes :exports none
+<<distr_laplace>>
+<<empyrical>>
+#+end_src
+
+#+name: Empyrical Uniform
+#+begin_src julia :noweb yes :exports none
+<<distr_uniform>>
+<<empyrical>>
+#+end_src
+
+#+name: Empyrical Poisson
+#+begin_src julia :noweb yes :exports none
+<<distr_poisson>>
+for (i,size) in enumerate(sizes)
+    sample = sort(rand(d,size));
+    ind = unique(i -> sample[i], eachindex(sample));
+    x = range(6,14,151);
+    parr[i] = plot(sample[ind], ind/size,xlimits=(6,14),title="n=$size",label="approx");
+    plot!(parr[i],x,cdf.(d,x),label="cdf");
+end
+dplot = plot(parr...,layout=(1,3),dpi=300,size=(1500,350));
+savefig(dplot,"figs/emp$name")
+#+end_src
+
+#+caption: Нормальное распределение
+[[./figs/empNormal.png]]
+
+#+caption: Распределение Коши
+[[./figs/empCauchy.png]]
+
+#+caption: Распределение Лапласа
+[[./figs/empLaplace.png]]
+
+#+caption: Распределение Пуассона
+[[./figs/empPoisson.png]]
+
+#+caption: Равномерное распределение
+[[./figs/empUniform.png]]
 ** Ядерные оценки плотности распределения
 * Обсуждение
 ** Гистограмма и график плотности распределения
