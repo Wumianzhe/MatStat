@@ -22,8 +22,23 @@ for (i,size) in enumerate(sizes)
         E[j] = mean(vals);
         D[j] = stdm(vals,E[j]);
     end
-    outs[i] = ["$name n=$size" fill("",1,5); "" "\$\\overline{x}\$" "\$med x\$" "\$z_R\$" "\$z_Q\$" "\$z_{tr}\$"
-       "E(z)" map(x->@sprintf("%6.3f",x),permutedims(E)); "D(z)" map(x->@sprintf("%6.3f",x),permutedims(D)); fill("",1,6)];
+    Em = E - sqrt.(D);
+    Ep = E + sqrt.(D);
+    Ei = [[Em[i] Ep[i]] for i in 1:Base.size(E)[1]]
+    Ed = [if Ep[i] - Em[i] < 1
+              @sprintf("%d",round(E[i]))
+          else
+              "-"
+          end for i in 1:Base.size(E)[1]]
+    outs[i] = ["$name n=$size" fill("",1,5);
+               "" "\$\\overline{x}\$" "\$med x\$" "\$z_R\$" "\$z_Q\$" "\$z_{tr}\$"
+               "E(z)" map(x->@sprintf("%6.3f",x),permutedims(E))
+               "D(z)" map(x->@sprintf("%6.3f",x),permutedims(D))
+               "\$E(z) - \\sqrt{D}\$" map(x->@sprintf("%6.3f",x), permutedims(Em))
+               "\$E(z) + \\sqrt{D}\$" map(x->@sprintf("%6.3f",x), permutedims(Ep))
+               "интервальная оценка" map(x->@sprintf("[%3.2f %3.2f]",x[1],x[2]),permutedims(Ei))
+               "точечная оценка" permutedims(Ed)
+               fill("",1,6)];
 end
 open("figs/char$name.csv","w") do io
     writedlm(IOContext(io,:compact => true),reduce(vcat,outs),',')
@@ -42,8 +57,23 @@ for (i,size) in enumerate(sizes)
         E[j] = mean(vals);
         D[j] = stdm(vals,E[j]);
     end
-    outs[i] = ["$name n=$size" fill("",1,5); "" "\$\\overline{x}\$" "\$med x\$" "\$z_R\$" "\$z_Q\$" "\$z_{tr}\$"
-       "E(z)" map(x->@sprintf("%6.3f",x),permutedims(E)); "D(z)" map(x->@sprintf("%6.3f",x),permutedims(D)); fill("",1,6)];
+    Em = E - sqrt.(D);
+    Ep = E + sqrt.(D);
+    Ei = [[Em[i] Ep[i]] for i in 1:Base.size(E)[1]]
+    Ed = [if Ep[i] - Em[i] < 1
+              @sprintf("%d",round(E[i]))
+          else
+              "-"
+          end for i in 1:Base.size(E)[1]]
+    outs[i] = ["$name n=$size" fill("",1,5);
+               "" "\$\\overline{x}\$" "\$med x\$" "\$z_R\$" "\$z_Q\$" "\$z_{tr}\$"
+               "E(z)" map(x->@sprintf("%6.3f",x),permutedims(E))
+               "D(z)" map(x->@sprintf("%6.3f",x),permutedims(D))
+               "\$E(z) - \\sqrt{D}\$" map(x->@sprintf("%6.3f",x), permutedims(Em))
+               "\$E(z) + \\sqrt{D}\$" map(x->@sprintf("%6.3f",x), permutedims(Ep))
+               "интервальная оценка" map(x->@sprintf("[%3.2f %3.2f]",x[1],x[2]),permutedims(Ei))
+               "точечная оценка" permutedims(Ed)
+               fill("",1,6)];
 end
 open("figs/char$name.csv","w") do io
     writedlm(IOContext(io,:compact => true),reduce(vcat,outs),',')
@@ -62,8 +92,23 @@ for (i,size) in enumerate(sizes)
         E[j] = mean(vals);
         D[j] = stdm(vals,E[j]);
     end
-    outs[i] = ["$name n=$size" fill("",1,5); "" "\$\\overline{x}\$" "\$med x\$" "\$z_R\$" "\$z_Q\$" "\$z_{tr}\$"
-       "E(z)" map(x->@sprintf("%6.3f",x),permutedims(E)); "D(z)" map(x->@sprintf("%6.3f",x),permutedims(D)); fill("",1,6)];
+    Em = E - sqrt.(D);
+    Ep = E + sqrt.(D);
+    Ei = [[Em[i] Ep[i]] for i in 1:Base.size(E)[1]]
+    Ed = [if Ep[i] - Em[i] < 1
+              @sprintf("%d",round(E[i]))
+          else
+              "-"
+          end for i in 1:Base.size(E)[1]]
+    outs[i] = ["$name n=$size" fill("",1,5);
+               "" "\$\\overline{x}\$" "\$med x\$" "\$z_R\$" "\$z_Q\$" "\$z_{tr}\$"
+               "E(z)" map(x->@sprintf("%6.3f",x),permutedims(E))
+               "D(z)" map(x->@sprintf("%6.3f",x),permutedims(D))
+               "\$E(z) - \\sqrt{D}\$" map(x->@sprintf("%6.3f",x), permutedims(Em))
+               "\$E(z) + \\sqrt{D}\$" map(x->@sprintf("%6.3f",x), permutedims(Ep))
+               "интервальная оценка" map(x->@sprintf("[%3.2f %3.2f]",x[1],x[2]),permutedims(Ei))
+               "точечная оценка" permutedims(Ed)
+               fill("",1,6)];
 end
 open("figs/char$name.csv","w") do io
     writedlm(IOContext(io,:compact => true),reduce(vcat,outs),',')
@@ -82,8 +127,23 @@ for (i,size) in enumerate(sizes)
         E[j] = mean(vals);
         D[j] = stdm(vals,E[j]);
     end
-    outs[i] = ["$name n=$size" fill("",1,5); "" "\$\\overline{x}\$" "\$med x\$" "\$z_R\$" "\$z_Q\$" "\$z_{tr}\$"
-       "E(z)" map(x->@sprintf("%6.3f",x),permutedims(E)); "D(z)" map(x->@sprintf("%6.3f",x),permutedims(D)); fill("",1,6)];
+    Em = E - sqrt.(D);
+    Ep = E + sqrt.(D);
+    Ei = [[Em[i] Ep[i]] for i in 1:Base.size(E)[1]]
+    Ed = [if Ep[i] - Em[i] < 1
+              @sprintf("%d",round(E[i]))
+          else
+              "-"
+          end for i in 1:Base.size(E)[1]]
+    outs[i] = ["$name n=$size" fill("",1,5);
+               "" "\$\\overline{x}\$" "\$med x\$" "\$z_R\$" "\$z_Q\$" "\$z_{tr}\$"
+               "E(z)" map(x->@sprintf("%6.3f",x),permutedims(E))
+               "D(z)" map(x->@sprintf("%6.3f",x),permutedims(D))
+               "\$E(z) - \\sqrt{D}\$" map(x->@sprintf("%6.3f",x), permutedims(Em))
+               "\$E(z) + \\sqrt{D}\$" map(x->@sprintf("%6.3f",x), permutedims(Ep))
+               "интервальная оценка" map(x->@sprintf("[%3.2f %3.2f]",x[1],x[2]),permutedims(Ei))
+               "точечная оценка" permutedims(Ed)
+               fill("",1,6)];
 end
 open("figs/char$name.csv","w") do io
     writedlm(IOContext(io,:compact => true),reduce(vcat,outs),',')
@@ -102,8 +162,23 @@ for (i,size) in enumerate(sizes)
         E[j] = mean(vals);
         D[j] = stdm(vals,E[j]);
     end
-    outs[i] = ["$name n=$size" fill("",1,5); "" "\$\\overline{x}\$" "\$med x\$" "\$z_R\$" "\$z_Q\$" "\$z_{tr}\$"
-       "E(z)" map(x->@sprintf("%6.3f",x),permutedims(E)); "D(z)" map(x->@sprintf("%6.3f",x),permutedims(D)); fill("",1,6)];
+    Em = E - sqrt.(D);
+    Ep = E + sqrt.(D);
+    Ei = [[Em[i] Ep[i]] for i in 1:Base.size(E)[1]]
+    Ed = [if Ep[i] - Em[i] < 1
+              @sprintf("%d",round(E[i]))
+          else
+              "-"
+          end for i in 1:Base.size(E)[1]]
+    outs[i] = ["$name n=$size" fill("",1,5);
+               "" "\$\\overline{x}\$" "\$med x\$" "\$z_R\$" "\$z_Q\$" "\$z_{tr}\$"
+               "E(z)" map(x->@sprintf("%6.3f",x),permutedims(E))
+               "D(z)" map(x->@sprintf("%6.3f",x),permutedims(D))
+               "\$E(z) - \\sqrt{D}\$" map(x->@sprintf("%6.3f",x), permutedims(Em))
+               "\$E(z) + \\sqrt{D}\$" map(x->@sprintf("%6.3f",x), permutedims(Ep))
+               "интервальная оценка" map(x->@sprintf("[%3.2f %3.2f]",x[1],x[2]),permutedims(Ei))
+               "точечная оценка" permutedims(Ed)
+               fill("",1,6)];
 end
 open("figs/char$name.csv","w") do io
     writedlm(IOContext(io,:compact => true),reduce(vcat,outs),',')
