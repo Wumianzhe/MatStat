@@ -47,25 +47,25 @@ d = Normal(0,1);
   #+end_src
 - Распределение Коши \(C(x,0,1)\)
   #+name: distr_cauchy
-  #+begin_src julia :exports none
+  #+begin_src julia
 name = "Cauchy";
 d = Cauchy(0,1);
   #+end_src
 - Распределение Лапласа \(L(x,0,\frac{1}{\sqrt{2}})\)
   #+name: distr_laplace
-  #+begin_src julia :exports none
+  #+begin_src julia
 name = "Laplace";
 d = Laplace(0,1/sqrt(2));
   #+end_src
 - Распределение Пуассона \(P(k,10)\)
   #+name: distr_poisson
-  #+begin_src julia :exports none
+  #+begin_src julia
 name = "Poisson";
 d = Poisson(10);
   #+end_src
 - Равномерное распределение \(U(x,-\sqrt{3},\sqrt{3})\)
   #+name: distr_uniform
-  #+begin_src julia :exports none
+  #+begin_src julia
 name = "Uniform";
 d = Uniform(-sqrt(3),sqrt(3));
   #+end_src
@@ -127,7 +127,7 @@ U(x, -\sqrt{3},\sqrt{3}) = \begin{cases}
 #+end_export
 ** Гистограмма
 #+name: histogram
-#+begin_src julia :exports none
+#+begin_src julia
 parr = fill(plot(),3,1);
 xmin = -5;
 xmax = 5;
@@ -160,7 +160,7 @@ savefig(dplot,"figs/hist" * name)
 неубывающем порядке. Одинаковые элементы повторяются.
 ** Выборочные числовые характеристики
 #+name: charFunctions
-#+begin_src julia :exports none :results none
+#+begin_src julia
 sizes = [10,50,1000];
 extr(itr) = (minimum(itr) + maximum(itr))/2; # extremes
 quart(itr) = mean(quantile(itr,[0.25,0.75])); # quantile avg
@@ -170,7 +170,7 @@ function truncAvg(itr) # truncated average
 end
 #+end_src
 #+name: charasteristics
-#+begin_src julia :exports none :results none
+#+begin_src julia
 outs = Vector{Any}(undef,3);
 E = fill(0.0,5);
 D = fill(0.0,5);
@@ -253,7 +253,7 @@ z_{Q} = \frac{z_{1 / 4} + z_{3 / 4}}{2}
 
 ** Боксплот Тьюки
 #+name: boxplot
-#+begin_src julia :exports none
+#+begin_src julia
 p = plot([box(x=rand(d,size),name="n=$size") for size in sizes], Layout(title=name));
 savefig(p,"figs/box$name.png");
 #+end_src
@@ -725,41 +725,41 @@ using Statistics,DelimitedFiles,Printf
 \pagebreak
 ** Боксплот Тьюки
 :PROPERTIES:
-:header-args:julia: :tangle boxes.jl :session boxes
+:header-args:julia: :exports none :tangle boxes.jl :session boxes
 :END:
 #+name: Boxplot Top
-#+begin_src julia :noweb yes :exports none
+#+begin_src julia :noweb yes
 <<imports>>
 using PlotlyJS
 sizes = [20,100];
 #+end_src
 
 #+name: Boxplot Normal
-#+begin_src julia :noweb yes :exports none
+#+begin_src julia :noweb yes
 <<distr_normal>>
 <<boxplot>>
 #+end_src
 
 #+name: Boxplot Cauchy
-#+begin_src julia :noweb yes :exports none
+#+begin_src julia :noweb yes
 <<distr_cauchy>>
 <<boxplot>>
 #+end_src
 
 #+name: Boxplot Laplace
-#+begin_src julia :noweb yes :exports none
+#+begin_src julia :noweb yes
 <<distr_laplace>>
 <<boxplot>>
 #+end_src
 
 #+name: Boxplot Uniform
-#+begin_src julia :noweb yes :exports none
+#+begin_src julia :noweb yes
 <<distr_uniform>>
 <<boxplot>>
 #+end_src
 
 #+name: Boxplot Poisson
-#+begin_src julia :noweb yes :exports none
+#+begin_src julia :noweb yes
 <<distr_poisson>>
 <<boxplot>>
 #+end_src
@@ -784,41 +784,41 @@ sizes = [20,100];
 \pagebreak
 ** Доля выбросов
 :PROPERTIES:
-:header-args:julia: :tangle outliers.jl :session outliers
+:header-args:julia: :exports none :tangle outliers.jl :session outliers
 :END:
 #+name: Outliers Top
-#+begin_src julia :noweb yes :exports none
+#+begin_src julia :noweb yes
 <<imports>>
 using Statistics
 sizes=[20,100]
 #+end_src
 
 #+name: Outliers Normal
-#+begin_src julia :noweb yes :exports none
+#+begin_src julia :noweb yes
 <<distr_normal>>
 <<outliers>>
 #+end_src
 
 #+name: Outliers Cauchy
-#+begin_src julia :noweb yes :exports none
+#+begin_src julia :noweb yes
 <<distr_cauchy>>
 <<outliers>>
 #+end_src
 
 #+name: Outliers Laplace
-#+begin_src julia :noweb yes :exports none
+#+begin_src julia :noweb yes
 <<distr_laplace>>
 <<outliers>>
 #+end_src
 
 #+name: Outliers Uniform
-#+begin_src julia :noweb yes :exports none
+#+begin_src julia :noweb yes
 <<distr_uniform>>
 <<outliers>>
 #+end_src
 
 #+name: Outliers Poisson
-#+begin_src julia :noweb yes :exports none
+#+begin_src julia :noweb yes
 <<distr_poisson>>
 <<outliers>>
 #+end_src
@@ -853,10 +853,10 @@ sizes=[20,100]
 | Равномерное   |  -0.866 |   0.866 |  -3.464 |    3.464 |       0 |
 ** Эмпирическая функция распределения
 :PROPERTIES:
-:header-args:julia: :tangle empyrical.jl :session empyrical
+:header-args:julia: :exports none :tangle empyrical.jl :session empyrical
 :END:
 #+name: Empyrical Top
-#+begin_src julia :noweb yes :exports none
+#+begin_src julia :noweb yes
 <<imports>>
 using StatsPlots
 sizes=[20,60,100];
@@ -864,31 +864,31 @@ parr = fill(plot(),3,1);
 #+end_src
 
 #+name: Empyrical Normal
-#+begin_src julia :noweb yes :exports none
+#+begin_src julia :noweb yes
 <<distr_normal>>
 <<empyrical>>
 #+end_src
 
 #+name: Empyrical Cauchy
-#+begin_src julia :noweb yes :exports none
+#+begin_src julia :noweb yes
 <<distr_cauchy>>
 <<empyrical>>
 #+end_src
 
 #+name: Empyrical Laplace
-#+begin_src julia :noweb yes :exports none
+#+begin_src julia :noweb yes
 <<distr_laplace>>
 <<empyrical>>
 #+end_src
 
 #+name: Empyrical Uniform
-#+begin_src julia :noweb yes :exports none
+#+begin_src julia :noweb yes
 <<distr_uniform>>
 <<empyrical>>
 #+end_src
 
 #+name: Empyrical Poisson
-#+begin_src julia :noweb yes :exports none
+#+begin_src julia :noweb yes
 <<distr_poisson>>
 for (i,size) in enumerate(sizes)
     sample = sort(rand(d,size));
@@ -917,10 +917,10 @@ savefig(dplot,"figs/emp$name")
 [[./figs/empUniform.png]]
 ** Ядерные оценки плотности распределения
 :PROPERTIES:
-:header-args:julia: :tangle kernel.jl :session kernel
+:header-args:julia: :exports none :tangle kernel.jl :session kernel
 :END:
 #+name: Kernel Top
-#+begin_src julia :noweb yes :exports none
+#+begin_src julia :noweb yes
 <<imports>>
 using StatsPlots,KernelDensity
 sizes=[20,60,100];
@@ -928,31 +928,31 @@ parr = fill(plot(),3,4);
 #+end_src
 
 #+name: Kernel Normal
-#+begin_src julia :noweb yes :exports none
+#+begin_src julia :noweb yes
 <<distr_normal>>
 <<kernel>>
 #+end_src
 
 #+name: Kernel Cauchy
-#+begin_src julia :noweb yes :exports none
+#+begin_src julia :noweb yes
 <<distr_cauchy>>
 <<kernel>>
 #+end_src
 
 #+name: Kernel Laplace
-#+begin_src julia :noweb yes :exports none
+#+begin_src julia :noweb yes
 <<distr_laplace>>
 <<kernel>>
 #+end_src
 
 #+name: Kernel Uniform
-#+begin_src julia :noweb yes :exports none
+#+begin_src julia :noweb yes
 <<distr_uniform>>
 <<kernel>>
 #+end_src
 
 #+name: Kernel Poisson
-#+begin_src julia :noweb yes :exports none
+#+begin_src julia :noweb yes
 <<distr_poisson>>
 for (i,size) in enumerate(sizes)
     for (j,m) in enumerate([0.5,1.0,2.0])
