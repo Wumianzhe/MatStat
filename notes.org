@@ -2,12 +2,36 @@
 #+LANGUAGE: ru
 #+LATEX_CLASS: article
 #+LATEX_CLASS_OPTIONS: [a4paper,fleqn,12pt]
+#+options: toc:nil title:nil
 #+property: header-args :noweb yes :eval no-export
 #+property: header-args:julia :exports none
 #+LATEX_HEADER: \usepackage[lmargin=15mm, rmargin=15mm, tmargin=2cm, bmargin=2cm]{geometry}
 
+\begin{titlepage}
+  \Large
+  \begin{center}
+    Санкт-Петербургский\\
+    Политехнический университет Петра Великого\\
+    \vspace{10em}
+    Математическая статистика\\
+    \vspace{2em}
+    \textbf{Отчёт по лабораторным работам 1-4}
+  \end{center}
+  \vspace{6em}
+  \begin{flushright}
+    Студент: Копнов Александр Александрович\\
+    Преподаватель: Баженов Александр Николаевич\\
+    Группа: 5030102/00101
+  \end{flushright}
+  \vspace{\fill}
+  \begin{center}
+    Санкт-Петербург\\
+    2023
+  \end{center}
+\end{titlepage}
+\tableofcontents
 \listoffigures
-#+TOC: tables
+\listoftables
 * Постановка задачи
 #+name: imports
 #+begin_src julia :exports none :session :results none
@@ -340,8 +364,24 @@ F_{n}^{*}(x) \approx F_{X}(x)
 \hat{f}(x) \approx f(x)
 \end{equation}
 
-
 *** Ядерные оценки
+#+name: kernel
+#+begin_src julia
+for (i,size) in enumerate(sizes)
+    for (j,m) in enumerate([0.5,1.0,2.0])
+        sample = rand(d,size);
+        U = kde(sample);
+        x = range(-4,4,101);
+        parr[i,j] = plot(x,y -> pdf(U,y), title="\$h = $m\\cdot h_n\$",label="kde");
+        plot!(parr[i,j],x,pdf.(d,x),label="pdf",ylimits=(0,1));
+    end
+    parr[i,end] = plot(parr[i,1:3]...,layout=(1,3),plot_title="n=$size",size=(1500,500))
+end
+dplot = plot(parr[:,end]...,layout=(3,1),dpi=300);
+savefig(dplot,"figs/kde$name");
+#+end_src
+
+#+RESULTS: kernel
 
 Представим оценку в виде суммы с числом слагаемых, равным объёму выборки
 \begin{equation}
@@ -876,6 +916,72 @@ savefig(dplot,"figs/emp$name")
 #+caption: Равномерное распределение
 [[./figs/empUniform.png]]
 ** Ядерные оценки плотности распределения
+:PROPERTIES:
+:header-args:julia: :tangle kernel.jl :session kernel
+:END:
+#+name: Kernel Top
+#+begin_src julia :noweb yes :exports none
+<<imports>>
+using StatsPlots,KernelDensity
+sizes=[20,60,100];
+parr = fill(plot(),3,4);
+#+end_src
+
+#+name: Kernel Normal
+#+begin_src julia :noweb yes :exports none
+<<distr_normal>>
+<<kernel>>
+#+end_src
+
+#+name: Kernel Cauchy
+#+begin_src julia :noweb yes :exports none
+<<distr_cauchy>>
+<<kernel>>
+#+end_src
+
+#+name: Kernel Laplace
+#+begin_src julia :noweb yes :exports none
+<<distr_laplace>>
+<<kernel>>
+#+end_src
+
+#+name: Kernel Uniform
+#+begin_src julia :noweb yes :exports none
+<<distr_uniform>>
+<<kernel>>
+#+end_src
+
+#+name: Kernel Poisson
+#+begin_src julia :noweb yes :exports none
+<<distr_poisson>>
+for (i,size) in enumerate(sizes)
+    for (j,m) in enumerate([0.5,1.0,2.0])
+        sample = rand(d,size);
+        U = kde(sample);
+        x = range(6,14,101);
+        parr[i,j] = plot(x,y -> pdf(U,y), title="\$h = $m\\cdot h_n\$",label="kde");
+        plot!(parr[i,j],range(6,14,9),x -> pdf(d,x),label="pdf");
+    end
+    parr[i,end] = plot(parr[i,1:3]...,layout=(1,3),plot_title="n=$size",size=(1500,500))
+end
+dplot = plot(parr[:,end]...,layout=(3,1),dpi=300);
+savefig(dplot,"figs/kde$name");
+#+end_src
+
+#+caption: Нормальное распределение
+[[./figs/kdeNormal.png]]
+
+#+caption: Распределение Коши
+[[./figs/kdeCauchy.png]]
+
+#+caption: Распределение Лапласа
+[[./figs/kdeLaplace.png]]
+
+#+caption: Распределение Пуассона
+[[./figs/kdePoisson.png]]
+
+#+caption: Равномерное распределение
+[[./figs/kdeUniform.png]]
 * Обсуждение
 ** Гистограмма и график плотности распределения
 
@@ -896,11 +1002,9 @@ savefig(dplot,"figs/emp$name")
 это результат выбросов, которые мы могли наблюдать в результатах предыдущего задания.
 ** Доля и теоретическая вероятность выбросов
 
-По данным, приведённым в таблице, можно сказать, что чем больше выборка, тем
-ближе доля выбросов будет к теоретической оценке. Снова доля выбросов для
-распределения Коши значительно выше, чем для остальных распределений.
-Равномерное распределение же в точности повторяет теоретическую оценку ---
-выбросов мы не получали.
+Фактическая доля выбросов удивительно близка к теоретической оценке. Как теория,
+так и измерения показывают наибольшую долю выбросов у распределения Коши.
+Не было получено выбросов при исследовании равномерного распределения.
 
 Боксплоты Тьюки действительно позволяют более наглядно и с меньшими усилиями
 оценивать важные характеристики распределений. Так, исходя из полученных
@@ -911,7 +1015,7 @@ savefig(dplot,"figs/emp$name")
 Можем наблюдать на иллюстрациях с э. ф. р., что ступенчатая эмпирическая функция
 распределения тем лучше приближает функцию распределения реальной выборки, чем
 мощнее эта выборка. Заметим так же, что для распределения Пуассона и
-равномерного распределения отклонение функций друг от друга наибольшее.
+Коши отклонение функций друг от друга наибольшее.
 
 Рисунки, посвященные ядерным оценкам, иллюстрируют сближение ядерной оценки и
 функции плотности вероятности для всех \(h\) с ростом размера выборки. Для
@@ -931,3 +1035,11 @@ savefig(dplot,"figs/emp$name")
 на рассматриваемом промежутке. Также видно, что при \(h = 2h_n\) по полученным
 приближениям становится сложно сказать плотность вероятности какого
 распределения они должны повторять, так как они очень похожи между собой.
+
+* Литература
+
++ Histogram. [[https:en.wikipedia.org/wiki/Histogram]]
++ Вероятностные разделы математики. Учебник для бакалавров технических
+  направлений. Под ред. Максимова Ю.Д. --- Спб "Иван Федоров", 2001. --- 592 с., илл.
++ Box Plot. [[https:en.wikipedia.org/wiki/Box_plot]]
++ Анатольев, Станислав (2009) "Непараметрическая регрессия", Квантиль, No7, стр. 37-52
