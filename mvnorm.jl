@@ -56,6 +56,7 @@ for s in sizes
     end
 end
 
+parr = fill(plot(),4);
 for (i,s) in enumerate(sizes)
     d1 = MvNormal([0,0],[1 0.9;0.9 1]);
     d2 = MvNormal([0,0],[10 -9;-9 10]);
@@ -66,13 +67,17 @@ for (i,s) in enumerate(sizes)
         Esq[j] = mean(vals.^2);
         D[j] = stdm(vals,E[j]);
     end
-    outs[i] = ["\\size=$s" fill("", 1, size(funcs)[1])
+    outs[i] = ["size=$s" fill("", 1, size(funcs)[1])
                "" "\$r\$" "\$r_S\$" "\$r_Q\$"
                "E(z)" map(x -> @sprintf("%6.3f", x), permutedims(E))
                "\$E(z^2)\$" map(x -> @sprintf("%6.3f", x), permutedims(Esq))
                "D(z)" map(x -> @sprintf("%6.3f", x), permutedims(D))
                fill("", 1, size(funcs)[1]+1)]
+    parr[i] = scatter(samples[1][1,:],samples[1][2,:],xlimits=(-3,3),ylimits=(-3,3),title="size=$s",legend=false);
+    covellipse!(parr[i],[mean(samples[1][k,:]) for k in 1:size(samples[1])[1]],cov(samples[1],dims=2),n_std=2)
 end
+parr[end] = plot(parr[1:3]...,layout=(1,3),plot_title="Смесь распределений",size=(1500,500));
+savefig(parr[end],"figs/ellMix")
 open("figs/charMix.csv", "w") do io
     writedlm(IOContext(io, :compact => true), reduce(vcat, outs), ',')
 end
